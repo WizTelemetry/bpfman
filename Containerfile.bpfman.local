@@ -47,6 +47,17 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/\* /tmp/\* /var/tmp/*
 
+RUN mkdir -p /opt/bpfman/btf
+
+# Copy BTF files, socket-tracer binary and start script
+COPY btf/ /opt/bpfman/btf/
+COPY btf/socket-tracer /usr/local/bin/socket-tracer
+COPY btf/tcp-stats-go /usr/local/bin/tcp-stats-go
+COPY btf/start.sh /start.sh
+
+# Ensure scripts are executable
+RUN chmod +x /usr/local/bin/socket-tracer /usr/local/bin/tcp-stats-go /start.sh
+
 COPY --from=bpfman-build  ./usr/src/bpfman/bpfman .
 
-ENTRYPOINT ["./bpfman-rpc", "--timeout=0"]
+ENTRYPOINT ["/start.sh"]

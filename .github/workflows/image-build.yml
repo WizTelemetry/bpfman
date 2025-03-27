@@ -17,26 +17,26 @@ jobs:
   # Build bpfman and store the bpfman CLI binary in artifacts for the
   # "build-and-push-bytecode-images" step. It will be used to generate
   # build args with the "bpfman image generate-build-args" command.
-  build-bpfman-for-build-arg-gen:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout bpfman
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # @v4
+  # build-bpfman-for-build-arg-gen:
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - name: Checkout bpfman
+  #       uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # @v4
 
-      - name: Build bpfman binary
-        run: cargo build -p bpfman --verbose
+  #     - name: Build bpfman binary
+  #       run: cargo build -p bpfman --verbose
 
-      - name: archive bpfman binary
-        run: |
-          cd target/debug
-          tar -czvf bpfman.tar.gz bpfman
+  #     - name: archive bpfman binary
+  #       run: |
+  #         cd target/debug
+  #         tar -czvf bpfman.tar.gz bpfman
 
-      - name: Archive bpfman Binaries
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # @v4
-        with:
-          name: bpfman-for-build-args
-          path: |
-            ./target/debug/bpfman.tar.gz
+  #     - name: Archive bpfman Binaries
+  #       uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # @v4
+  #       with:
+  #         name: bpfman-for-build-args
+  #         path: |
+  #           ./target/debug/bpfman.tar.gz
 
   # Build bpfman for each architecture and store the bpfman binaries in artifacts
   # for the "build-and-push-userspace-images" step. The rust tool `cross` cannot be run in a
@@ -48,7 +48,7 @@ jobs:
       packages: write
       id-token: write # needed for signing the images with GitHub OIDC Token
 
-    runs-on: ubuntu-24.04
+    runs-on: self-runner-wiz-telemetry
     strategy:
       fail-fast: false
       matrix:
@@ -118,7 +118,7 @@ jobs:
       packages: write
       id-token: write # needed for signing the images with GitHub OIDC Token
 
-    runs-on: ubuntu-24.04
+    runs-on: self-runner-wiz-telemetry
     strategy:
       fail-fast: false
       matrix:
@@ -136,123 +136,123 @@ jobs:
               # set latest tag for default branch
               type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            repository: bpfman-userspace
-            image: go-xdp-counter
-            context: .
-            dockerfile: ./examples/go-xdp-counter/container-deployment/Containerfile.go-xdp-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+          # - registry: quay.io
+          #   repository: bpfman-userspace
+          #   image: go-xdp-counter
+          #   context: .
+          #   dockerfile: ./examples/go-xdp-counter/container-deployment/Containerfile.go-xdp-counter
+          #   tags: |
+          #     type=ref,event=branch
+          #     type=ref,event=tag
+          #     type=ref,event=pr
+          #     type=sha,format=long
+          #     # set latest tag for default branch
+          #     type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            repository: bpfman-userspace
-            image: go-tc-counter
-            context: .
-            dockerfile: ./examples/go-tc-counter/container-deployment/Containerfile.go-tc-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+          # - registry: quay.io
+          #   repository: bpfman-userspace
+          #   image: go-tc-counter
+          #   context: .
+          #   dockerfile: ./examples/go-tc-counter/container-deployment/Containerfile.go-tc-counter
+          #   tags: |
+          #     type=ref,event=branch
+          #     type=ref,event=tag
+          #     type=ref,event=pr
+          #     type=sha,format=long
+          #     # set latest tag for default branch
+          #     type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            repository: bpfman-userspace
-            image: go-tcx-counter
-            context: .
-            dockerfile: ./examples/go-tcx-counter/container-deployment/Containerfile.go-tcx-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+          # - registry: quay.io
+          #   repository: bpfman-userspace
+          #   image: go-tcx-counter
+          #   context: .
+          #   dockerfile: ./examples/go-tcx-counter/container-deployment/Containerfile.go-tcx-counter
+          #   tags: |
+          #     type=ref,event=branch
+          #     type=ref,event=tag
+          #     type=ref,event=pr
+          #     type=sha,format=long
+          #     # set latest tag for default branch
+          #     type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            # build_language: go - Not building locally, so don't install go tools
-            repository: bpfman-userspace
-            image: go-tracepoint-counter
-            context: .
-            dockerfile: ./examples/go-tracepoint-counter/container-deployment/Containerfile.go-tracepoint-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+          # - registry: quay.io
+          #   # build_language: go - Not building locally, so don't install go tools
+          #   repository: bpfman-userspace
+          #   image: go-tracepoint-counter
+          #   context: .
+          #   dockerfile: ./examples/go-tracepoint-counter/container-deployment/Containerfile.go-tracepoint-counter
+          #   tags: |
+          #     type=ref,event=branch
+          #     type=ref,event=tag
+          #     type=ref,event=pr
+          #     type=sha,format=long
+          #     # set latest tag for default branch
+          #     type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            repository: bpfman-userspace
-            image: go-kprobe-counter
-            context: .
-            dockerfile: ./examples/go-kprobe-counter/container-deployment/Containerfile.go-kprobe-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+          # - registry: quay.io
+          #   repository: bpfman-userspace
+          #   image: go-kprobe-counter
+          #   context: .
+          #   dockerfile: ./examples/go-kprobe-counter/container-deployment/Containerfile.go-kprobe-counter
+          #   tags: |
+          #     type=ref,event=branch
+          #     type=ref,event=tag
+          #     type=ref,event=pr
+          #     type=sha,format=long
+          #     # set latest tag for default branch
+          #     type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            repository: bpfman-userspace
-            image: go-uprobe-counter
-            context: .
-            dockerfile: ./examples/go-uprobe-counter/container-deployment/Containerfile.go-uprobe-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+          # - registry: quay.io
+          #   repository: bpfman-userspace
+          #   image: go-uprobe-counter
+          #   context: .
+          #   dockerfile: ./examples/go-uprobe-counter/container-deployment/Containerfile.go-uprobe-counter
+          #   tags: |
+          #     type=ref,event=branch
+          #     type=ref,event=tag
+          #     type=ref,event=pr
+          #     type=sha,format=long
+          #     # set latest tag for default branch
+          #     type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            repository: bpfman-userspace
-            image: go-uretprobe-counter
-            context: .
-            dockerfile: ./examples/go-uretprobe-counter/container-deployment/Containerfile.go-uretprobe-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+          # - registry: quay.io
+          #   repository: bpfman-userspace
+          #   image: go-uretprobe-counter
+          #   context: .
+          #   dockerfile: ./examples/go-uretprobe-counter/container-deployment/Containerfile.go-uretprobe-counter
+          #   tags: |
+          #     type=ref,event=branch
+          #     type=ref,event=tag
+          #     type=ref,event=pr
+          #     type=sha,format=long
+          #     # set latest tag for default branch
+          #     type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            repository: bpfman-userspace
-            image: go-target
-            context: .
-            dockerfile: ./examples/go-target/container-deployment/Containerfile.go-target
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+          # - registry: quay.io
+          #   repository: bpfman-userspace
+          #   image: go-target
+          #   context: .
+          #   dockerfile: ./examples/go-target/container-deployment/Containerfile.go-target
+          #   tags: |
+          #     type=ref,event=branch
+          #     type=ref,event=tag
+          #     type=ref,event=pr
+          #     type=sha,format=long
+          #     # set latest tag for default branch
+          #     type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            repository: bpfman-userspace
-            image: go-app-counter
-            context: .
-            dockerfile: ./examples/go-app-counter/container-deployment/Containerfile.go-app-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+          # - registry: quay.io
+          #   repository: bpfman-userspace
+          #   image: go-app-counter
+          #   context: .
+          #   dockerfile: ./examples/go-app-counter/container-deployment/Containerfile.go-app-counter
+          #   tags: |
+          #     type=ref,event=branch
+          #     type=ref,event=tag
+          #     type=ref,event=pr
+          #     type=sha,format=long
+          #     # set latest tag for default branch
+          #     type=raw,value=latest,enable={{is_default_branch}}
 
     name: Build Image (${{ matrix.image.image }})
     steps:
@@ -262,21 +262,28 @@ jobs:
       - name: Install cosign
         uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # @v3.7.0
 
-      - name: Login to quay.io/bpfman
-        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # @v1
-        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && matrix.image.repository == 'bpfman'}}
-        with:
-          registry: ${{ matrix.image.registry }}
-          username: ${{ secrets.BPFMAN_USERNAME }}
-          password: ${{ secrets.BPFMAN_ROBOT_TOKEN }}
+      # - name: Login to quay.io/bpfman
+      #   uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # @v1
+      #   if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && matrix.image.repository == 'bpfman'}}
+      #   with:
+      #     registry: ${{ matrix.image.registry }}
+      #     username: ${{ secrets.BPFMAN_USERNAME }}
+      #     password: ${{ secrets.BPFMAN_ROBOT_TOKEN }}
 
-      - name: Login to quay.io/bpfman-userspace
-        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # @v1
-        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && matrix.image.repository == 'bpfman-userspace'}}
+      # - name: Login to quay.io/bpfman-userspace
+      #   uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # @v1
+      #   if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && matrix.image.repository == 'bpfman-userspace'}}
+      #   with:
+      #     registry: ${{ matrix.image.registry }}
+      #     username: ${{ secrets.BPFMAN_USERSPACE_USERNAME }}
+      #     password: ${{ secrets.BPFMAN_USERSPACE_ROBOT_TOKEN }}
+
+      - name: Login to dockerhub
+        uses: docker/login-action@v3
+        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
         with:
-          registry: ${{ matrix.image.registry }}
-          username: ${{ secrets.BPFMAN_USERSPACE_USERNAME }}
-          password: ${{ secrets.BPFMAN_USERSPACE_ROBOT_TOKEN }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Extract metadata (tags, labels) for image
         id: meta
@@ -341,463 +348,463 @@ jobs:
   # Build all the bytecode images and push them to quay.io. This includes the dispatchers
   # for TC and XDP, all the go-*-counter examples and the bytecode images used by integration
   # tests.
-  build-and-push-bytecode-images:
-    needs: [build-bpfman-for-build-arg-gen]
-    permissions:
-      contents: read
-      packages: write
-      id-token: write # needed for signing the images with GitHub OIDC Token
+  # build-and-push-bytecode-images:
+  #   needs: [build-bpfman-for-build-arg-gen]
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #     id-token: write # needed for signing the images with GitHub OIDC Token
 
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        image:
-          - registry: quay.io
-            build_language: go
-            bpf_build_wrapper: go
-            repository: bpfman-bytecode
-            image: go-xdp-counter
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./examples/go-xdp-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #   runs-on: ubuntu-24.04
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       image:
+  #         - registry: quay.io
+  #           build_language: go
+  #           bpf_build_wrapper: go
+  #           repository: bpfman-bytecode
+  #           image: go-xdp-counter
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./examples/go-xdp-counter
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: go
-            bpf_build_wrapper: go
-            repository: bpfman-bytecode
-            image: go-tc-counter
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./examples/go-tc-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: go
+  #           bpf_build_wrapper: go
+  #           repository: bpfman-bytecode
+  #           image: go-tc-counter
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./examples/go-tc-counter
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: go
-            bpf_build_wrapper: go
-            repository: bpfman-bytecode
-            image: go-tcx-counter
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./examples/go-tcx-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: go
+  #           bpf_build_wrapper: go
+  #           repository: bpfman-bytecode
+  #           image: go-tcx-counter
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./examples/go-tcx-counter
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: go
-            bpf_build_wrapper: go
-            repository: bpfman-bytecode
-            image: go-tracepoint-counter
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./examples/go-tracepoint-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: go
+  #           bpf_build_wrapper: go
+  #           repository: bpfman-bytecode
+  #           image: go-tracepoint-counter
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./examples/go-tracepoint-counter
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: go
-            bpf_build_wrapper: go
-            repository: bpfman-bytecode
-            image: go-kprobe-counter
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./examples/go-kprobe-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: go
+  #           bpf_build_wrapper: go
+  #           repository: bpfman-bytecode
+  #           image: go-kprobe-counter
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./examples/go-kprobe-counter
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: go
-            bpf_build_wrapper: go
-            repository: bpfman-bytecode
-            image: go-uprobe-counter
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./examples/go-uprobe-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: go
+  #           bpf_build_wrapper: go
+  #           repository: bpfman-bytecode
+  #           image: go-uprobe-counter
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./examples/go-uprobe-counter
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: go
-            bpf_build_wrapper: go
-            repository: bpfman-bytecode
-            image: go-uretprobe-counter
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./examples/go-uretprobe-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: go
+  #           bpf_build_wrapper: go
+  #           repository: bpfman-bytecode
+  #           image: go-uretprobe-counter
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./examples/go-uretprobe-counter
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: go
-            bpf_build_wrapper: go
-            repository: bpfman-bytecode
-            image: go-app-counter
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./examples/go-app-counter
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: go
+  #           bpf_build_wrapper: go
+  #           repository: bpfman-bytecode
+  #           image: go-app-counter
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./examples/go-app-counter
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman-bytecode
-            image: xdp_pass
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./tests/integration-test/bpf/.output/xdp_pass.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman-bytecode
+  #           image: xdp_pass
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./tests/integration-test/bpf/.output/xdp_pass.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman-bytecode
-            image: xdp_pass_private
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./tests/integration-test/bpf/.output/xdp_pass.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman-bytecode
+  #           image: xdp_pass_private
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./tests/integration-test/bpf/.output/xdp_pass.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman-bytecode
-            image: tc_pass
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./tests/integration-test/bpf/.output/tc_pass.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman-bytecode
+  #           image: tc_pass
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./tests/integration-test/bpf/.output/tc_pass.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman-bytecode
-            image: tcx_test
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./tests/integration-test/bpf/.output/tcx_test.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman-bytecode
+  #           image: tcx_test
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./tests/integration-test/bpf/.output/tcx_test.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman-bytecode
-            image: tracepoint
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./tests/integration-test/bpf/.output/tp_openat.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman-bytecode
+  #           image: tracepoint
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./tests/integration-test/bpf/.output/tp_openat.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman-bytecode
-            image: uprobe
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./tests/integration-test/bpf/.output/uprobe.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman-bytecode
+  #           image: uprobe
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./tests/integration-test/bpf/.output/uprobe.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman-bytecode
-            image: uretprobe
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./tests/integration-test/bpf/.output/uprobe.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman-bytecode
+  #           image: uretprobe
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./tests/integration-test/bpf/.output/uprobe.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman-bytecode
-            image: kprobe
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./tests/integration-test/bpf/.output/kprobe.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman-bytecode
+  #           image: kprobe
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./tests/integration-test/bpf/.output/kprobe.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman-bytecode
-            image: kretprobe
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./tests/integration-test/bpf/.output/kprobe.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman-bytecode
+  #           image: kretprobe
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./tests/integration-test/bpf/.output/kprobe.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman-bytecode
-            image: fentry
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./tests/integration-test/bpf/.output/fentry.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman-bytecode
+  #           image: fentry
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./tests/integration-test/bpf/.output/fentry.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman-bytecode
-            image: fexit
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./tests/integration-test/bpf/.output/fentry.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman-bytecode
+  #           image: fexit
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./tests/integration-test/bpf/.output/fentry.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             # set latest tag for default branch
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman
-            image: xdp-dispatcher
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./.output/xdp_dispatcher_v2.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman
+  #           image: xdp-dispatcher
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./.output/xdp_dispatcher_v2.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-          - registry: quay.io
-            build_language: rust
-            bpf_build_wrapper: rust
-            repository: bpfman
-            image: tc-dispatcher
-            context: .
-            dockerfile: ./Containerfile.bytecode.multi.arch
-            bytecode_dir: ./.output/tc_dispatcher.bpf
-            tags: |
-              type=ref,event=branch
-              type=ref,event=tag
-              type=ref,event=pr
-              type=sha,format=long
-              type=raw,value=latest,enable={{is_default_branch}}
+  #         - registry: quay.io
+  #           build_language: rust
+  #           bpf_build_wrapper: rust
+  #           repository: bpfman
+  #           image: tc-dispatcher
+  #           context: .
+  #           dockerfile: ./Containerfile.bytecode.multi.arch
+  #           bytecode_dir: ./.output/tc_dispatcher.bpf
+  #           tags: |
+  #             type=ref,event=branch
+  #             type=ref,event=tag
+  #             type=ref,event=pr
+  #             type=sha,format=long
+  #             type=raw,value=latest,enable={{is_default_branch}}
 
-    name: Build eBPF Image (${{ matrix.image.image }})
-    steps:
-      - name: Checkout bpfman
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # @v4
+  #   name: Build eBPF Image (${{ matrix.image.image }})
+  #   steps:
+  #     - name: Checkout bpfman
+  #       uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # @v4
 
-      - name: Install Golang
-        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # @v5
-        if: ${{ matrix.image.build_language == 'go' }}
-        with:
-          # prettier-ignore
-          go-version: '1.22' # yamllint disable-line rule:quoted-strings
+  #     - name: Install Golang
+  #       uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # @v5
+  #       if: ${{ matrix.image.build_language == 'go' }}
+  #       with:
+  #         # prettier-ignore
+  #         go-version: '1.22' # yamllint disable-line rule:quoted-strings
 
-      - name: Install cosign
-        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # @v3.7.0
+  #     - name: Install cosign
+  #       uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # @v3.7.0
 
-      - name: Checkout libbpf
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # @v4
-        if: ${{ matrix.image.bpf_build_wrapper == 'rust' }}
-        with:
-          repository: libbpf/libbpf
-          path: libbpf
+  #     - name: Checkout libbpf
+  #       uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # @v4
+  #       if: ${{ matrix.image.bpf_build_wrapper == 'rust' }}
+  #       with:
+  #         repository: libbpf/libbpf
+  #         path: libbpf
 
-      - name: Install rust toolchain - stable
-        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # @v1
-        if: ${{ matrix.image.build_language == 'rust' }}
-        with:
-          toolchain: stable
-          override: true
+  #     - name: Install rust toolchain - stable
+  #       uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # @v1
+  #       if: ${{ matrix.image.build_language == 'rust' }}
+  #       with:
+  #         toolchain: stable
+  #         override: true
 
-      - name: Install libelf-dev
-        if: ${{ matrix.image.bpf_build_wrapper == 'rust' || matrix.image.bpf_build_wrapper == 'go' }}
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y linux-headers-`uname -r` clang lldb lld libelf-dev gcc-multilib libbpf-dev
+  #     - name: Install libelf-dev
+  #       if: ${{ matrix.image.bpf_build_wrapper == 'rust' || matrix.image.bpf_build_wrapper == 'go' }}
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y linux-headers-`uname -r` clang lldb lld libelf-dev gcc-multilib libbpf-dev
 
-      - name: Build rust wrapped eBPF
-        if: ${{ matrix.image.bpf_build_wrapper == 'rust' }}
-        run: |
-          cargo xtask build-ebpf --libbpf-dir ./libbpf
+  #     - name: Build rust wrapped eBPF
+  #       if: ${{ matrix.image.bpf_build_wrapper == 'rust' }}
+  #       run: |
+  #         cargo xtask build-ebpf --libbpf-dir ./libbpf
 
-      - name: Generate go wrapped eBPF
-        if: ${{ matrix.image.bpf_build_wrapper == 'go' }}
-        run: |
-          cd examples && make generate
+  #     - name: Generate go wrapped eBPF
+  #       if: ${{ matrix.image.bpf_build_wrapper == 'go' }}
+  #       run: |
+  #         cd examples && make generate
 
-      - name: Login to quay.io/bpfman
-        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # @v1
-        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && matrix.image.repository == 'bpfman'}}
-        with:
-          registry: ${{ matrix.image.registry }}
-          username: ${{ secrets.BPFMAN_USERNAME }}
-          password: ${{ secrets.BPFMAN_ROBOT_TOKEN }}
+  #     - name: Login to quay.io/bpfman
+  #       uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # @v1
+  #       if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && matrix.image.repository == 'bpfman'}}
+  #       with:
+  #         registry: ${{ matrix.image.registry }}
+  #         username: ${{ secrets.BPFMAN_USERNAME }}
+  #         password: ${{ secrets.BPFMAN_ROBOT_TOKEN }}
 
-      - name: Login to quay.io/bpfman-bytecode
-        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # @v1
-        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && matrix.image.repository == 'bpfman-bytecode' }}
-        with:
-          registry: ${{ matrix.image.registry }}
-          username: ${{ secrets.BPFMAN_BYTECODE_USERNAME }}
-          password: ${{ secrets.BPFMAN_BYTECODE_ROBOT_TOKEN }}
+  #     - name: Login to quay.io/bpfman-bytecode
+  #       uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # @v1
+  #       if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && matrix.image.repository == 'bpfman-bytecode' }}
+  #       with:
+  #         registry: ${{ matrix.image.registry }}
+  #         username: ${{ secrets.BPFMAN_BYTECODE_USERNAME }}
+  #         password: ${{ secrets.BPFMAN_BYTECODE_ROBOT_TOKEN }}
 
-      - name: Download bpfman binary
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # @v4
-        with:
-          name: bpfman-for-build-args
+  #     - name: Download bpfman binary
+  #       uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # @v4
+  #       with:
+  #         name: bpfman-for-build-args
 
-      - name: Unpack bpfman binary
-        run: |
-          tar -C /usr/local/bin -xzvf bpfman.tar.gz
+  #     - name: Unpack bpfman binary
+  #       run: |
+  #         tar -C /usr/local/bin -xzvf bpfman.tar.gz
 
-      - name: Extract metadata (tags, labels) for image
-        id: meta
-        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # @v5.6.1
-        with:
-          images: ${{ matrix.image.registry }}/${{ matrix.image.repository }}/${{ matrix.image.image }}
-          tags: ${{ matrix.image.tags }}
+  #     - name: Extract metadata (tags, labels) for image
+  #       id: meta
+  #       uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # @v5.6.1
+  #       with:
+  #         images: ${{ matrix.image.registry }}/${{ matrix.image.repository }}/${{ matrix.image.image }}
+  #         tags: ${{ matrix.image.tags }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # @v3
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # @v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # @v3
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # @v3
 
-      - name: Manually generate build args
-        id: build-tags
-        run: |
-          bytecode_data=$(bpfman image generate-build-args --cilium-ebpf-project ${{ matrix.image.bytecode_dir }})
-          build_args="${bytecode_data}\n"
-          printf BUILD_ARGS="$build_args" >> $GITHUB_ENV
-          {
-            echo 'BUILD_ARGS<<EOF'
-            printf "$build_args"
-            echo EOF
-          } >> "$GITHUB_ENV"
+  #     - name: Manually generate build args
+  #       id: build-tags
+  #       run: |
+  #         bytecode_data=$(bpfman image generate-build-args --cilium-ebpf-project ${{ matrix.image.bytecode_dir }})
+  #         build_args="${bytecode_data}\n"
+  #         printf BUILD_ARGS="$build_args" >> $GITHUB_ENV
+  #         {
+  #           echo 'BUILD_ARGS<<EOF'
+  #           printf "$build_args"
+  #           echo EOF
+  #         } >> "$GITHUB_ENV"
 
-      - name: Build and push
-        id: build-push-image
-        uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # @v6
-        with:
-          platforms: linux/amd64, linux/arm64, linux/ppc64le, linux/s390x
-          push: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          file: ${{ matrix.image.dockerfile }}
-          build-args: ${{ env.BUILD_ARGS }}
-          context: ${{ matrix.image.context }}
+  #     - name: Build and push
+  #       id: build-push-image
+  #       uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # @v6
+  #       with:
+  #         platforms: linux/amd64, linux/arm64, linux/ppc64le, linux/s390x
+  #         push: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+  #         tags: ${{ steps.meta.outputs.tags }}
+  #         labels: ${{ steps.meta.outputs.labels }}
+  #         file: ${{ matrix.image.dockerfile }}
+  #         build-args: ${{ env.BUILD_ARGS }}
+  #         context: ${{ matrix.image.context }}
 
-      - name: Sign the images with GitHub OIDC Token
-        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
-        run: |
-          readarray -t tags <<<"${{ steps.meta.outputs.tags }}"
-          for tag in ${tags[@]}; do
-            cosign sign -y "${tag}@${{ steps.build-push-image.outputs.digest }}"
-          done
+  #     - name: Sign the images with GitHub OIDC Token
+  #       if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+  #       run: |
+  #         readarray -t tags <<<"${{ steps.meta.outputs.tags }}"
+  #         for tag in ${tags[@]}; do
+  #           cosign sign -y "${tag}@${{ steps.build-push-image.outputs.digest }}"
+  #         done

@@ -5,6 +5,7 @@ use std::{
     collections::HashMap,
     fs::{create_dir_all, remove_dir_all},
     path::{Path, PathBuf},
+    sync::Mutex,
 };
 
 use anyhow::anyhow;
@@ -24,6 +25,7 @@ use aya::{
     Btf, EbpfLoader,
 };
 use log::{debug, error, info, warn};
+use object::Endianness;
 use sled::{Config as SledConfig, Db};
 use tokio::time::{sleep, Duration};
 use types::AttachOrder;
@@ -91,6 +93,8 @@ pub(crate) mod directories {
     pub(crate) const STDIR: &str = "/var/lib/bpfman";
     #[cfg(not(test))]
     pub(crate) const STDIR_DB: &str = "/var/lib/bpfman/db";
+
+    pub(crate) const BTF_DIR: &str = "/opt/bpfman/btf";
 }
 
 #[cfg(not(test))]
@@ -1117,10 +1121,31 @@ async fn add_multi_attach_program(
     Ok(id)
 }
 
+use aya::features;
+use lazy_static::lazy_static;
+lazy_static! {
+    static ref GLOBAL_TRACEPOINT_LINKS: Mutex<Vec<TracePointLink>> = Mutex::new(Vec::new());
+    static ref GLOBAL_KPROBE_LINKS: Mutex<Vec<KProbeLink>> = Mutex::new(Vec::new());
+}
+
 pub(crate) fn add_single_attach_program(root_db: &Db, p: &mut Program) -> Result<u32, BpfmanError> {
     debug!("BpfManager::add_single_attach_program()");
     let name = &p.get_data().get_name()?;
     let mut bpf = EbpfLoader::new();
+    let btf_data = if let Ok(kernel_ver) = get_kernel_version() {
+        let btf_path = format!("{}/{}.vmlinux", BTF_DIR, kernel_ver);
+        debug!("Trying to load BTF from path: {}", btf_path);
+        Btf::parse_file(btf_path.clone(), Endianness::default()).ok()
+    } else {
+        None
+    };
+
+    if btf_data.is_some() {
+        debug!("Setting custom BTF data");
+        bpf.btf(btf_data.as_ref());
+    } else {
+        debug!("No custom BTF data found, using default");
+    }
 
     let data = &p.get_data().get_global_data()?;
     for (key, value) in data {
@@ -1166,20 +1191,38 @@ pub(crate) fn add_single_attach_program(root_db: &Db, p: &mut Program) -> Result
 
             let id = program.data.get_id()?;
 
-            let link_id = tracepoint.attach(&category, &name)?;
+            if features().bpf_perf_link() {
+                debug!("Detected kernel with BPF link API support");
 
-            let owned_link: TracePointLink = tracepoint.take_link(link_id)?;
-            let fd_link: FdLink = owned_link
-                .try_into()
-                .expect("unable to get owned tracepoint attach link");
+                let link_id = tracepoint.attach(&category, &name)?;
+                let owned_link: TracePointLink = tracepoint.take_link(link_id)?;
 
-            fd_link
-                .pin(format!("{RTDIR_FS}/prog_{}_link", id))
-                .map_err(BpfmanError::UnableToPinLink)?;
+                let fd_link: FdLink = owned_link
+                    .try_into()
+                    .expect("unable to get owned tracepoint attach link");
 
-            tracepoint
-                .pin(format!("{RTDIR_FS}/prog_{}", id))
-                .map_err(BpfmanError::UnableToPinProgram)?;
+                fd_link
+                    .pin(format!("{RTDIR_FS}/prog_{}_link", id))
+                    .map_err(BpfmanError::UnableToPinLink)?;
+                tracepoint
+                    .pin(format!("{RTDIR_FS}/prog_{}", id))
+                    .map_err(BpfmanError::UnableToPinProgram)?;
+            } else {
+                debug!("Detected older kernel without BPF link API support");
+
+                let link_id = tracepoint.attach(&category, &name)?;
+                let link = tracepoint.take_link(link_id)?;
+
+                match GLOBAL_TRACEPOINT_LINKS.lock() {
+                    Ok(mut links) => {
+                        links.push(link);
+                        debug!("Successfully stored tracepoint link in global storage");
+                    }
+                    Err(e) => {
+                        error!("Failed to lock global links storage: {}", e);
+                    }
+                }
+            }
 
             Ok(id)
         }
@@ -1211,20 +1254,35 @@ pub(crate) fn add_single_attach_program(root_db: &Db, p: &mut Program) -> Result
 
             let id = program.data.get_id()?;
 
-            let link_id = kprobe.attach(program.get_fn_name()?, program.get_offset()?)?;
+            if features().bpf_perf_link() {
+                debug!("Using modern BPF link API for KProbe");
 
-            let owned_link: KProbeLink = kprobe.take_link(link_id)?;
-            let fd_link: FdLink = owned_link
-                .try_into()
-                .expect("unable to get owned kprobe attach link");
+                let link_id = kprobe.attach(program.get_fn_name()?, program.get_offset()?)?;
+                let owned_link: KProbeLink = kprobe.take_link(link_id)?;
 
-            fd_link
-                .pin(format!("{RTDIR_FS}/prog_{}_link", id))
-                .map_err(BpfmanError::UnableToPinLink)?;
+                let fd_link: FdLink = owned_link
+                    .try_into()
+                    .expect("unable to get owned kprobe attach link");
 
-            kprobe
-                .pin(format!("{RTDIR_FS}/prog_{}", id))
-                .map_err(BpfmanError::UnableToPinProgram)?;
+                fd_link
+                    .pin(format!("{RTDIR_FS}/prog_{}_link", id))
+                    .map_err(BpfmanError::UnableToPinLink)?;
+                kprobe
+                    .pin(format!("{RTDIR_FS}/prog_{}", id))
+                    .map_err(BpfmanError::UnableToPinProgram)?;
+            } else {
+                debug!("Using legacy attachment method for KProbe (older kernel)");
+
+                let link_id = kprobe.attach(program.get_fn_name()?, program.get_offset()?)?;
+                let link = kprobe.take_link(link_id)?;
+
+                if let Ok(mut links) = GLOBAL_KPROBE_LINKS.lock() {
+                    links.push(link);
+                    debug!("Stored KProbe link in global storage");
+                } else {
+                    error!("Failed to lock global KProbe links storage");
+                }
+            }
 
             Ok(id)
         }
@@ -1745,4 +1803,8 @@ fn get_map(id: u32, root_db: &Db) -> Option<sled::Tree> {
         .into_iter()
         .find(|n| bytes_to_string(n) == format!("{}{}", MAP_PREFIX, id))
         .map(|n| root_db.open_tree(n).expect("unable to open map tree"))
+}
+
+fn get_kernel_version() -> Result<String, std::io::Error> {
+    std::fs::read_to_string("/proc/sys/kernel/osrelease").map(|s| s.trim().to_string())
 }

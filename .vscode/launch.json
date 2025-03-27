@@ -1,0 +1,173 @@
+{
+
+  "version": "0.2.0",
+
+  "configurations": [
+
+    {
+
+      "type": "lldb",
+
+      "request": "launch",
+
+      "name": "Debug BPFman",
+
+      "cargo": {
+
+        "args": [
+
+          "build",
+
+          "--bin=bpfman",
+
+          "--package=bpfman"
+
+        ],
+
+        "filter": {
+
+          "name": "bpfman",
+
+          "kind": "bin"
+
+        }
+
+      },
+
+      "args": [],
+
+      "cwd": "${workspaceFolder}",
+
+      "env": {
+
+        "RUST_LOG": "debug,bpfman=trace,libbpf=trace",
+
+        "LIBBPF_DEBUG": "1",
+
+        "RUST_BACKTRACE": "1"
+
+      }
+
+    },
+
+    {
+
+      "type": "lldb",
+
+      "request": "launch",
+
+      "name": "Debug BPFman-RPC",
+
+      "cargo": {
+
+        "args": [
+
+          "build",
+
+          "--bin=bpfman-rpc",
+
+          "--package=bpfman-api"
+
+        ],
+
+        "filter": {
+
+          "name": "bpfman-rpc",
+
+          "kind": "bin"
+
+        }
+
+      },
+
+      "args": [
+
+        "--timeout=0"
+
+      ],
+
+      "cwd": "${workspaceFolder}",
+
+      "env": {
+
+        "RUST_LOG": "debug,bpfman=trace,libbpf=trace",
+
+        "LIBBPF_DEBUG": "1",
+
+        "RUST_BACKTRACE": "1"
+
+      }
+
+    },
+
+    {
+
+      "type": "lldb",
+
+      "request": "launch",
+
+      "name": "Debug BPFman Load Command",
+
+      "cargo": {
+
+        "args": [
+
+          "build",
+
+          "--bin=bpfman",
+
+          "--package=bpfman",
+
+        ],
+
+        "filter": {
+
+          "name": "bpfman",
+
+          "kind": "bin"
+
+        }
+
+      },
+
+      "args": [
+
+        "load",
+
+        "file",
+
+        "-p",
+
+        "${workspaceFolder}/ebpf/socket-tracer-ebpf-go/bpf_x86_bpfel.o",
+
+        "--name",
+
+        "tp_en_read",
+
+        "tracepoint",
+
+        "--tracepoint",
+
+        "syscalls/sys_enter_read"
+
+      ],
+
+      "cwd": "${workspaceFolder}",
+
+      "env": {
+
+        "RUST_LOG": "debug,bpfman=trace,libbpf=trace",
+
+        "LIBBPF_DEBUG": "1",
+
+        "RUST_BACKTRACE": "1",
+
+        "BPFMAN_AGENT_SOCK": "/run/bpfman/sock/bpfman.sock"
+
+      },
+
+    }
+
+  ]
+
+}
