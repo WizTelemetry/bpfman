@@ -113,10 +113,26 @@ pick_vmlinux() {
     fi
   done
   # Fallback: pick the largest candidate
-  printf '%s\0' "${VMLINUX_CANDIDATES[@]}" | xargs -0 ls -lS | awk '{print $NF; exit}'
+  local largest=""
+  if [[ ${#VMLINUX_CANDIDATES[@]} -gt 0 ]]; then
+    largest=$(printf '%s\0' "${VMLINUX_CANDIDATES[@]}" | xargs -0 ls -lS 2>/dev/null | awk '{print $NF; exit}')
+  fi
+  if [[ -z "${largest}" ]]; then
+    echo "Error: failed to select a vmlinux candidate (no files found or pipeline failed)" >&2
+    return 1
+  fi
+  printf '%s\n' "${largest}"
 }
 
+# Safely capture selection even under 'set -e'
+set +e
 SELECTED_VMLINUX="$(pick_vmlinux)"
+rc=$?
+set -e
+if [[ ${rc} -ne 0 || -z "${SELECTED_VMLINUX}" ]]; then
+  echo "Error: failed to determine vmlinux file from RPM payload" >&2
+  exit 3
+fi
 echo "Found vmlinux candidate: ${SELECTED_VMLINUX}"
 
 # Decompress if necessary
