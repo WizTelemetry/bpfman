@@ -27,15 +27,27 @@ fi
 cleanup() {
     echo "Received signal, cleaning up..."
     
-    # Clean up tcp-stats-go
-    if [ -n "${TCP_STATS_PID}" ] && ps -p ${TCP_STATS_PID} > /dev/null; then
-        echo "Stopping tcp-stats-go (PID: ${TCP_STATS_PID})"
-        kill -TERM ${TCP_STATS_PID} 2>/dev/null || true
+    # Clean up socket-tracer
+    if [ -n "${SOCKET_TRACER_PID}" ] && ps -p "${SOCKET_TRACER_PID}" > /dev/null; then
+        echo "Stopping socket-tracer (PID: ${SOCKET_TRACER_PID})"
+        kill -TERM "${SOCKET_TRACER_PID}" 2>/dev/null || true
         # Give it a moment to exit gracefully
         sleep 2
         # Force kill if still running
-        if ps -p ${TCP_STATS_PID} > /dev/null; then
-            kill -9 ${TCP_STATS_PID} 2>/dev/null || true
+        if ps -p "${SOCKET_TRACER_PID}" > /dev/null; then
+            kill -9 "${SOCKET_TRACER_PID}" 2>/dev/null || true
+        fi
+    fi
+
+    # Clean up tcp-stats-go
+    if [ -n "${TCP_STATS_PID}" ] && ps -p "${TCP_STATS_PID}" > /dev/null; then
+        echo "Stopping tcp-stats-go (PID: ${TCP_STATS_PID})"
+        kill -TERM "${TCP_STATS_PID}" 2>/dev/null || true
+        # Give it a moment to exit gracefully
+        sleep 2
+        # Force kill if still running
+        if ps -p "${TCP_STATS_PID}" > /dev/null; then
+            kill -9 "${TCP_STATS_PID}" 2>/dev/null || true
         fi
     fi
     
@@ -50,32 +62,54 @@ trap cleanup INT TERM
 if [ -f "${BTF_FILE}" ]; then
     echo "Using BTF file: ${BTF_FILE}"
     
-    # Start socket-tracer (it will run initialization and exit)
-    echo "Running socket-tracer for initialization..."
-    /usr/local/bin/socket-tracer --init-only --btf-path "${BTF_FILE}"
-    echo "socket-tracer initialization completed"
-    
-    # Start tcp-stats-go
-    echo "Starting tcp-stats-go..."
+    # Start socket-tracer in init-only mode with BTF
+    echo "Starting socket-tracer in init-only mode..."
+    /usr/local/bin/socket-tracer --init-only --btf-path "${BTF_FILE}" &
+    SOCKET_TRACER_PID=$!
+    echo "socket-tracer started with PID ${SOCKET_TRACER_PID}"
+
+    # Start tcp-stats-go in init-only mode with BTF
+    echo "Starting tcp-stats-go in init-only mode..."
     /usr/local/bin/tcp-stats-go --init-only --btf-path "${BTF_FILE}" &
-    
-    # Store tcp-stats-go PID for cleanup
     TCP_STATS_PID=$!
     echo "tcp-stats-go started with PID ${TCP_STATS_PID}"
-    
-    # Wait briefly to ensure process has time to initialize and load BPF programs
+
+    # Wait briefly to ensure processes have time to initialize and load BPF programs
     sleep 3
-    
+
+    # Verify socket-tracer is running
+    if ! ps -p "${SOCKET_TRACER_PID}" > /dev/null; then
+        echo "ERROR: socket-tracer failed to start"
+        exit 1
+    fi
     # Verify tcp-stats-go is running
-    if ! ps -p ${TCP_STATS_PID} > /dev/null; then
+    if ! ps -p "${TCP_STATS_PID}" > /dev/null; then
         echo "ERROR: tcp-stats-go failed to start"
         exit 1
     fi
 else
     echo "No suitable BTF file found for kernel ${KERNEL_VERSION}"
-    # only start tcp-stats-go if no custom BTF file is found
-    echo "Starting tcp-stats-go..."
+    # Start both agents in init-only mode without custom BTF
+    echo "Starting socket-tracer in init-only mode (no custom BTF)..."
+    /usr/local/bin/socket-tracer --init-only &
+    SOCKET_TRACER_PID=$!
+    echo "socket-tracer started with PID ${SOCKET_TRACER_PID}"
+
+    echo "Starting tcp-stats-go in init-only mode (no custom BTF)..."
     /usr/local/bin/tcp-stats-go --init-only &
+    TCP_STATS_PID=$!
+    echo "tcp-stats-go started with PID ${TCP_STATS_PID}"
+
+    # Wait briefly and verify processes are running
+    sleep 3
+    if ! ps -p "${SOCKET_TRACER_PID}" > /dev/null; then
+        echo "ERROR: socket-tracer failed to start (no custom BTF)"
+        exit 1
+    fi
+    if ! ps -p "${TCP_STATS_PID}" > /dev/null; then
+        echo "ERROR: tcp-stats-go failed to start (no custom BTF)"
+        exit 1
+    fi
 fi
 
 echo "Starting bpfman-rpc..."
